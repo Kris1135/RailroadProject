@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+
+
+{% block content %}
+    {% if user.is_authenticated %}
+    
+
+    {% else %}
+    <div id="main-container" style="display:block; text-align:center">
+        <h2 style="padding-bottom:15px">Welcome to Team 5's reservation project!</h2>
+        <p>To create a reservation create an account using the form below.</p>
+        
+        <form action="/your-name/" method="post">
+            <label for="your_name">Your name: </label>
+            <input id="your_name" type="text" name="your_name" value="{{ current_name }}">
+            <input type="submit" value="OK">
+        </form>
+        
+        <p>Already have an account? <a href="{% url 'login' %}">Click here to Login.</a></p>
+    </div>
+    {% endif %}
+{% endblock content %}
