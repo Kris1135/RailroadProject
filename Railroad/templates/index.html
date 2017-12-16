@@ -1,7 +1,5 @@
 {% extends "base.html" %}
 
-
-
 {% block content %}
     {% if user.is_authenticated %}
     
@@ -11,12 +9,35 @@
         <h2 style="padding-bottom:15px">Welcome to Team 5's reservation project!</h2>
         <p>To create a reservation create an account using the form below.</p>
         
-        <form action="/your-name/" method="post">
-            <label for="your_name">Your name: </label>
-            <input id="your_name" type="text" name="your_name" value="{{ current_name }}">
-            <input type="submit" value="OK">
+        <form method="post">
+            {% csrf_token %}
+            {% for field in user_form %}
+                <p>
+                {{ field.label_tag }} <br>{{ field }}
+                {% if field.help_text %}
+                    {% comment %} <small style="color: grey">{{ field.help_text }}</small> {% endcomment %}
+                            
+                {% endif %}
+                {% for error in field.errors %}
+                    <p style="color: red">{{ error }}</p>
+                {% endfor %}
+                </p>
+            {% endfor %}
+            {% for field in pass_form %}
+            <p>
+            {{ field.label_tag }} <br>{{ field }}
+            {% if field.help_text %}
+                {% comment %} <small style="color: grey">{{ field.help_text }}</small> {% endcomment %}
+                        
+            {% endif %}
+            {% for error in field.errors %}
+                <p style="color: red">{{ error }}</p>
+            {% endfor %}
+            </p>
+        {% endfor %}
+            <button type="submit">Register</button>
         </form>
-        
+        <p style="font-size:12px; color:grey">* Password must be 8 characters and cannot be too similar to your other information</p>
         <p>Already have an account? <a href="{% url 'login' %}">Click here to Login.</a></p>
     </div>
     {% endif %}

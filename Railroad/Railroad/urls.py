@@ -20,6 +20,5 @@ urlpatterns = [
     url(r'^', include('Application.urls'), name='index'),
     url(r'^admin/', admin.site.urls),
     url(r'^accounts/', include('django.contrib.auth.urls')),
-
-
+    
 ]

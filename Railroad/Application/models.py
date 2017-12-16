@@ -8,7 +8,10 @@
 from __future__ import unicode_literals
 
 from django.db import models
-
+from django.conf import settings 
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class FareTypes(models.Model):
     fare_id = models.AutoField(primary_key=True)
@@ -21,18 +24,34 @@ class FareTypes(models.Model):
 
 
 class Passengers(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     passenger_id = models.AutoField(primary_key=True)
-    fname = models.CharField(max_length=30, blank=True, null=True)
-    lname = models.CharField(max_length=100, blank=True, null=True)
-    email = models.CharField(max_length=100, blank=True, null=True)
-    password = models.CharField(max_length=100, blank=True, null=True)
+    #fname = models.CharField(max_length=30, blank=True, null=True)
+    #lname = models.CharField(max_length=100, blank=True, null=True)
+    #email = models.CharField(max_length=100, blank=True, null=True)
+    #password = models.CharField(max_length=100, blank=True, null=True)
     preferred_card_number = models.CharField(max_length=16, blank=True, null=True)
     preferred_billing_address = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'passengers'
+        db_table = 'passengers'     
 
+# @receiver(post_save, sender=User)
+ 
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Passengers.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.passengers.save()
+
+def update_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Passengers.objects.create(user=instance)
+        instance.passengers.save()
 
 class Reservations(models.Model):
     reservation_id = models.AutoField(primary_key=True)
