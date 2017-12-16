@@ -37,21 +37,13 @@ class Passengers(models.Model):
         managed = False
         db_table = 'passengers'     
 
-# @receiver(post_save, sender=User)
+@receiver(post_save, sender=User)
  
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        Passengers.objects.create(user=instance)
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    instance.passengers.save()
 
 def update_user_profile(sender, instance, created, **kwargs):
     if created:
         Passengers.objects.create(user=instance)
-        instance.passengers.save()
+    instance.passengers.save()
 
 class Reservations(models.Model):
     reservation_id = models.AutoField(primary_key=True)
