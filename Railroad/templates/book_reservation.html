@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    label{
+        width: 4%;
+    }
+
+    .jsgrid-cell {
+        text-align: center;
+    }
+
+    .jsgrid-header-cell {
+        text-align: center;
+    }
+
+</style>
+{% if user.is_authenticated %}
+
+{% comment %} Modal for buying {% endcomment %}
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+  
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title" style="text-align:center">Book reservation</h4>
+            </div>
+            <div class="modal-body">
+                <p>This is the reservation details selected for booking:</p>
+            </div>
+            <div class="modal-footer" style="display: block; text-align:center">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Purchase</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+  
+    </div>
+</div>
+
+
+<h2>Fill out the fields to book a reservation.</h2>
+<p style="font-size:12px; color:grey"> *All fields should be filled out</p>
+<form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+        <p>
+        {{ field.label_tag }}{{ field }}
+        {% if field.help_text %}
+            {% comment %} <small style="color: grey">{{ field.help_text }}</small> {% endcomment %}
+                    
+        {% endif %}
+        {% for error in field.errors %}
+            <p style="color: red">{{ error }}</p>
+        {% endfor %}
+        <br>
+        </p>
+    {% endfor %}
+
+    <button type="submit">Search</button>
+</form>
+
+<h2>Available reservations:</h2>
+
+<p>To book a reservation click on a row with your desired time.</p>
+
+<div id="jsGrid"></div>
+
+{% else %}
+<p>You must be logged in to view this page.</p>
+{% endif %}
+
+<script type="text/javascript">
+    $( function() {
+        $( "#id_reserve_day" ).datepicker();
+      } );
+
+    //Format context to pass to grid....
+    var train_arr = "{{context.train_id}}"; train_arr = train_arr.substr(1).slice(0,-1);
+    var trains_str = train_arr.split(" ");
+    var trains = []
+
+    var depart_arr = "{{context.departure}}"; depart_arr = depart_arr.substr(1).slice(0,-1);
+    var depart_str = depart_arr.split(",");
+    var depart = []
+    
+    var arrive_arr = "{{context.arrival}}"; arrive_arr = arrive_arr.substr(1).slice(0,-1);
+    var arrive_str = arrive_arr.split(",");
+    var arrive = []
+    
+    var seats_arr = "{{context.free_seats}}"; seats_arr = seats_arr.substr(1).slice(0,-1);
+    var seats_str = seats_arr.split(" ");
+    var seats = []
+
+    var price_arr = "{{context.price}}"; price_arr = price_arr.substr(1).slice(0,-1);
+    var price_str = price_arr.split(" ");
+    var price = []
+
+    var reservations = [];
+
+    for(var i in trains_str) {
+        trains.push(parseInt(trains_str[i]));
+
+        depart_str[i] = depart_str[i].replace("&#39;",""); depart_str[i] = depart_str[i].replace("&#39;", ""); depart_str[i] = depart_str[i].replace(" ", "");
+        depart.push(depart_str[i]);
+
+        arrive_str[i] = arrive_str[i].replace("&#39;",""); arrive_str[i] = arrive_str[i].replace("&#39;", ""); arrive_str[i] = arrive_str[i].replace(" ", "");
+        arrive.push(arrive_str[i]);
+
+        seats.push(parseInt(seats_str[i]));
+
+        price.push(parseFloat(price_str[i]));
+
+        reservations.push(
+            {"Train": trains[i], "Departure": depart[i], "Arrival": arrive[i], "Seats Free": seats[i], "Price": price[i]}
+        )
+    }
+
+      $("#jsGrid").jsGrid({
+        width: "100%",
+        height: "400px",
+        align: "center",
+
+        inserting: false,
+        editing: false,
+        sorting: true,
+        paging: true,
+
+        rowClick: function() {
+            $('#myModal').modal('show');
+        },
+ 
+        data: reservations ,
+ 
+        fields: [
+            { name: "Train", type: "number", validate: "required" },
+            { name: "Departure", type: "text",  },
+            { name: "Arrival", type: "text",  },
+            { name: "Seats Free", type: "number",  },
+            { name: "Price", type: "number", },
+        ]
+    });
+
+</script>
+
+{% endblock content %}

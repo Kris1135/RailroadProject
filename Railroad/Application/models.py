@@ -7,11 +7,12 @@
 # Feel free to rename the models, but don't rename db_table values or field names.
 from __future__ import unicode_literals
 
-from django.db import models
+from django.db import models, connection 
 from django.conf import settings 
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django import forms
 
 class FareTypes(models.Model):
     fare_id = models.AutoField(primary_key=True)
@@ -85,6 +86,9 @@ class Stations(models.Model):
     station_name = models.CharField(max_length=40)
     station_symbol = models.CharField(unique=True, max_length=3)
 
+    def __str__ (self):
+        return self.station_name
+
     class Meta:
         managed = False
         db_table = 'stations'
@@ -127,3 +131,25 @@ class Trips(models.Model):
     class Meta:
         managed = False
         db_table = 'trips'
+
+class Search(models.Model):
+    time_choice = (
+        (0, 'Morning'),
+        (1, 'Afternoon'),
+        (2, 'Evening'),
+        (3, 'Night'),
+    )
+
+    time_of_day = models.IntegerField(blank=True, null=True, choices = time_choice)
+    reserve_day = models.DateField()
+    start_loc = models.ForeignKey(Stations, related_name='StartLoc')
+    end_loc = models.ForeignKey(Stations, related_name='EndLoc')
+
+    def reservations(tod, day, strt, end):
+        cur = connection.cursor()
+        cur.callproc('filter_res', (tod, day, strt, end) )
+        try:
+            results = cur.fetchall()
+        finally:
+            cur.close()
+        return results
