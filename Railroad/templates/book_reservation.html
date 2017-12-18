@@ -13,6 +13,9 @@
     .jsgrid-header-cell {
         text-align: center;
     }
+    .modal-body label {
+        width: 25%;
+    }
 
 </style>
 {% if user.is_authenticated %}
@@ -29,11 +32,21 @@
                 <h4 class="modal-title" style="text-align:center">Book reservation</h4>
             </div>
             <div class="modal-body">
-                <p>This is the reservation details selected for booking:</p>
-            </div>
-            <div class="modal-footer" style="display: block; text-align:center">
-                <button type="button" class="btn btn-primary" data-dismiss="modal">Purchase</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <form method="post">
+                    {% csrf_token %}
+                    <div>
+                        <p><label for="Start">Start Location:</label>{{ bookForm.start_loc1 }}</p>
+                        <p><label for="End">End Location:</label>{{ bookForm.end_loc1 }}</p>
+                        <p><label for="Train_number">Train Number</label>{{  bookForm.train }}</p>
+                        <p><label for="Departure">Departure Time:</label>{{  bookForm.departure }}</p>
+                        <p><label for="Arrival">Arrival Time:</label>{{  bookForm.arrival }}</p>
+                        <p><label for="Price">Price:</label>{{  bookForm.price }}</p>
+                    </div>
+                    <div class="buttons-form" style="display: block; text-align:center">
+                        <button type="submit" class="btn btn-primary" name="bookForm_submit">Purchase</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </form>
             </div>
         </div>
   
@@ -59,7 +72,7 @@
         </p>
     {% endfor %}
 
-    <button type="submit">Search</button>
+    <button type="submit" name="searchForm_submit">Search</button>
 </form>
 
 <h2>Available reservations:</h2>
@@ -127,9 +140,18 @@
         editing: false,
         sorting: true,
         paging: true,
+        selectable: true,
 
-        rowClick: function() {
+        rowClick: function(args) {
+            //Pass values to modal for the purchase form...
             $('#myModal').modal('show');
+            var data = args.item;
+            $('#id_train').val(data.Train);
+            $('#id_departure').val(data.Departure);
+            $('#id_arrival').val(data.Arrival);
+            $('#id_price').val(data.Price);
+            $('#id_start_loc1').val( $("#id_start_loc option:selected").text() );
+            $('#id_end_loc1').val( $("#id_end_loc option:selected").text() );
         },
  
         data: reservations ,

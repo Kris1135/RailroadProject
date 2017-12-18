@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Passengers, Search, Stations
+from .models import Passengers, Reservation_conn, Stations
 
 from django.forms.widgets import Select
     
@@ -15,8 +15,7 @@ class PassengersForm(UserCreationForm):
 class SearchForm(forms.ModelForm):
 
     class Meta:
-        loc_choices = Stations.objects.all()
-        model = Search
+        model = Reservation_conn
         widgets = {
             'reserve_day': forms.DateInput(attrs={'class':'datepicker'}),
         }
@@ -27,3 +26,14 @@ class SearchForm(forms.ModelForm):
             "end_loc": "End",
         }
         fields = '__all__'
+
+class BookForm(forms.ModelForm):
+    train = forms.CharField(max_length=1,required=True)
+    departure = forms.TimeField(required=True)
+    arrival = forms.TimeField(required=True)
+    price = forms.FloatField(required=True)
+    start_loc1 = forms.CharField(max_length=40, required=True)
+    end_loc1 = forms.CharField(max_length=40, required=True)
+    class Meta:
+        model = Reservation_conn
+        fields = ('train', 'departure', 'arrival', 'price', 'start_loc1', 'end_loc1')

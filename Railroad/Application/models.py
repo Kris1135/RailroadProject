@@ -132,7 +132,7 @@ class Trips(models.Model):
         managed = False
         db_table = 'trips'
 
-class Search(models.Model):
+class Reservation_conn(models.Model):
     time_choice = (
         (0, 'Morning'),
         (1, 'Afternoon'),
@@ -145,7 +145,7 @@ class Search(models.Model):
     start_loc = models.ForeignKey(Stations, related_name='StartLoc')
     end_loc = models.ForeignKey(Stations, related_name='EndLoc')
 
-    def reservations(tod, day, strt, end):
+    def search(tod, day, strt, end):
         cur = connection.cursor()
         cur.callproc('filter_res', (tod, day, strt, end) )
         try:

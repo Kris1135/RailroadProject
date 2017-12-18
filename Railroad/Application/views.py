@@ -5,8 +5,8 @@ from django.template import RequestContext
 from django.db import connection
 import datetime
 
-from .forms import PassengersForm, SearchForm
-from .models import Search
+from .forms import PassengersForm, SearchForm, BookForm
+from .models import Reservation_conn
 # Create your views here.
 # def index(request):
 #     return render(request, 'index.html')
@@ -34,8 +34,22 @@ def index(request):
 def about(request):
     return render(request, 'about.html')
 
-def book(request):
-    if request.method == 'POST':
+def search(request):
+    if request.method == 'POST' and 'bookForm_submit' in request.POST:
+        bookForm = BookForm(request.POST)
+        if bookForm.is_valid():
+            #Process data...
+            form_data = bookForm.cleaned_data
+            price = form_data['price'] 
+            departure = form_data['departure']
+            arrival = form_data['arrival']
+            train = form_data['train']
+            start_loc = form_data['start_loc1']
+            end_loc = form_data['end_loc1']            
+    else:
+        bookForm = BookForm()
+
+    if request.method == 'POST' and 'searchForm_submit' in request.POST:
         form = SearchForm(request.POST)
         if form.is_valid():
             #Process data...
@@ -44,7 +58,7 @@ def book(request):
             strt = form.cleaned_data.get('start_loc')
             end = form.cleaned_data.get('end_loc')
 
-            srch = Search.reservations(tod,day,strt,end)
+            srch = Reservation_conn.search(tod,day,strt,end)
             train_ids = []
             departs = []
             strts = []
@@ -72,12 +86,15 @@ def book(request):
                 'free_seats' : seats,
                 'price' : prices
             }
-            for x in srch:
-                print(x)
-            return render(request, 'book_reservation.html', {'form': form, 'context': context})
+            # for x in srch:
+            #     print(x)
+            return render(request, 'book_reservation.html', {'form': form, 'bookForm': bookForm, 'context': context})        
+
     else:
         form = SearchForm()
-    return render(request, 'book_reservation.html', {'form': form})
+
+
+    return render(request, 'book_reservation.html', {'form': form, 'bookForm': bookForm})        
 
 def current(request):
     return render(request, 'current_reservations.html')
