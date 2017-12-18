@@ -34,6 +34,8 @@ class BookForm(forms.ModelForm):
     price = forms.FloatField(required=True)
     start_loc1 = forms.CharField(max_length=40, required=True)
     end_loc1 = forms.CharField(max_length=40, required=True)
+    res_day = forms.DateField(required=True)
+
     class Meta:
         model = Reservation_conn
         fields = ('train', 'departure', 'arrival', 'price', 'start_loc1', 'end_loc1')

@@ -41,11 +41,16 @@ def search(request):
             #Process data...
             form_data = bookForm.cleaned_data
             price = form_data['price'] 
-            departure = form_data['departure']
-            arrival = form_data['arrival']
-            train = form_data['train']
+            strt_time = form_data['departure']
+            end_time = form_data['arrival']
+            train_id = form_data['train']
             start_loc = form_data['start_loc1']
-            end_loc = form_data['end_loc1']            
+            end_loc = form_data['end_loc1']   
+            date = form_data['res_day']
+            pass_id = request.user.id
+            exec_sp = Reservation_conn.book_reservation(pass_id, train_id, date, strt_time, end_time, start_loc, end_loc, price)
+            return redirect(current)
+
     else:
         bookForm = BookForm()
 
@@ -97,6 +102,45 @@ def search(request):
     return render(request, 'book_reservation.html', {'form': form, 'bookForm': bookForm})        
 
 def current(request):
-    return render(request, 'current_reservations.html')
+    pass_id = request.user.id 
+    exec_sp = Reservation_conn.curr_reservation(pass_id)
+    
+    res_date = []
+    trip_date = []
+    start_loc = []
+    end_loc = []
+    price = []
+    train = []
+    strt_time = []
+    end_time = []
+    card = []
+    addr = []
+    #Clean data for table...
+    for x in exec_sp:
+        res_date.append( x[0].strftime('%H:%M:%S %m/%d/%Y') )
+        trip_date.append( x[1].strftime('%m/%d/%Y') )
+        start_loc.append( x[2] )
+        end_loc.append( x[3] )
+        price.append( float(x[4]) )
+        train.append(x[5])
+        strt_time.append( x[6].strftime('%H:%M:%S') )
+        end_time.append( x[7].strftime('%H:%M:%S') )
+        card.append( x[8] )
+        addr.append( x[9] )
+
+    context = {
+        'reserve_date' :res_date,
+        'trip_date':trip_date,
+        'start_loc':start_loc,
+        'end_loc':end_loc,
+        'price':price,
+        'train':train,
+        'strt_time': strt_time,
+        'end_time': end_time,
+        'card': card,
+        'addr': addr,
+    }
+
+    return render(request, 'current_reservations.html', {'context': context})
 
         

@@ -3,10 +3,132 @@
 {% block content %}
 
 {% if user.is_authenticated %}
-
+<h3>These are your currently booked reservations, as well as your reservation history.</h3>
+<p>To edit or delete a reservation click on the row of the reservation.</p>
+<div id="jsGrid"></div>
 
 {% else %}
 <p>You must be logged in to view this page.</p>
 {% endif %}
+
+
+<script type="text/javascript">
+
+    //Format context to pass to grid....
+    var res_date_arr = "{{context.reserve_date}}"; res_date_arr = res_date_arr.substr(1).slice(0,-1);
+    var res_datestr = res_date_arr.split(",");
+    var res_date = []   
+
+    var trip_date_arr = "{{context.trip_date}}"; trip_date_arr = trip_date_arr.substr(1).slice(0,-1);
+    var trip_dateestr = trip_date_arr.split(",");
+    var trip_date = []  
+
+    var start_loc_arr = "{{context.start_loc}}"; start_loc_arr = start_loc_arr.substr(1).slice(0,-1);
+    var start_loc_str = start_loc_arr.split("&#39;,");
+    var start_loc = []
+
+    var end_loc_arr = "{{context.end_loc}}"; end_loc_arr = end_loc_arr.substr(1).slice(0,-1);
+    var end_loc_str = end_loc_arr.split("&#39;,");
+    var end_loc = []
+
+    var price_arr = "{{context.price}}"; price_arr = price_arr.substr(1).slice(0,-1);
+    var price_str = price_arr.split(" ");
+    var price = []
+
+    var train_arr = "{{context.train}}"; train_arr = train_arr.substr(1).slice(0,-1);
+    var trains_str = train_arr.split(" ");
+    var trains = []
+
+    var strttime_arr = "{{context.strt_time}}"; strttime_arr = strttime_arr.substr(1).slice(0,-1);
+    var strttime_str = strttime_arr.split(",");
+    var strttime = []
+    
+    var endtime_arr = "{{context.end_time}}"; endtime_arr = endtime_arr.substr(1).slice(0,-1);
+    var endtime_str = endtime_arr.split(",");
+    var endtime = []
+    
+    var card_arr = "{{context.card}}"; card_arr = card_arr.substr(1).slice(0,-1);
+    var card_str = card_arr.split(",");
+    var card = []
+
+    var addr_arr = "{{context.addr}}"; addr_arr = addr_arr.substr(1).slice(0,-1);
+    var addr_str = addr_arr.split("&#39;,");
+    var addr = []
+
+    var reservations = [];
+
+    for(var i in trains_str) {
+        res_datestr[i] = res_datestr[i].replace("&#39;",""); res_datestr[i] = res_datestr[i].replace("&#39;", ""); 
+        res_date.push(res_datestr[i]);
+
+        trip_dateestr[i] = trip_dateestr[i].replace("&#39;",""); trip_dateestr[i] = trip_dateestr[i].replace("&#39;", ""); trip_dateestr[i] = trip_dateestr[i].replace(" ", "");
+        trip_date.push(trip_dateestr[i]);
+
+        start_loc_str[i] = start_loc_str[i].replace("&#39;",""); start_loc_str[i] = start_loc_str[i].replace("&#39;", "");
+        start_loc.push(start_loc_str[i]);
+
+        end_loc_str[i] = end_loc_str[i].replace("&#39;",""); end_loc_str[i] = end_loc_str[i].replace("&#39;", "");
+        end_loc.push(end_loc_str[i]);
+
+        price.push(parseFloat(price_str[i]));
+
+        trains.push(parseInt(trains_str[i]));
+
+        strttime_str[i] = strttime_str[i].replace("&#39;",""); strttime_str[i] = strttime_str[i].replace("&#39;", ""); strttime_str[i] = strttime_str[i].replace(" ", "");
+        strttime.push(strttime_str[i]);
+
+        endtime_str[i] = endtime_str[i].replace("&#39;",""); endtime_str[i] = endtime_str[i].replace("&#39;", ""); endtime_str[i] = endtime_str[i].replace(" ", "");
+        endtime.push(endtime_str[i]);
+
+        card.push(card_str[i]);
+
+        addr_str[i] = addr_str[i].replace("&#39;",""); addr_str[i] = addr_str[i].replace("&#39;", "");
+        addr.push(addr_str[i]);
+
+        reservations.push(
+            { "Reservation Date": res_date[i], "Trip Date" : trip_date[i], "Start Location" : start_loc[i], "End Location" : end_loc[i], "Price": price[i],
+                "Train" : trains[i], "Start Time": strttime[i], "End Time" : endtime[i], "Card": card[i], "Billing Address" : addr[i]
+            }
+        )
+    }
+
+    console.log(reservations)
+
+      $("#jsGrid").jsGrid({
+        width: "100%",
+        height: "400px",
+        align: "center",
+
+        inserting: false,
+        editing: false,
+        sorting: true,
+        paging: true,
+        selectable: true,
+
+        rowClick: function(args) {
+            //Pass values to modal for the purchase form...
+            $('#myModal').modal('show');
+            var data = args.item;
+            
+            
+        },
+ 
+        data: reservations ,
+ 
+        fields: [
+            { name: "Reservation Date", type: "text", validate: "required" },
+            { name: "Trip Date", type: "text", validate: "required" },
+            { name: "Start Location", type: "text", validate: "required" },
+            { name: "End Location", type: "text", validate: "required" },
+            { name: "Price", type: "number", validate: "required" },
+            { name: "Train", type: "number", validate: "required" },
+            { name: "Start Time", type: "text", validate: "required" },
+            { name: "End Time", type: "text", validate: "required" },
+            { name: "Card", type: "text", validate: "required" },
+            { name: "Billing Address", type: "text", validate: "required" },
+        ]
+    });
+
+</script>
 
 {% endblock content %}

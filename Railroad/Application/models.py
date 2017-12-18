@@ -153,3 +153,22 @@ class Reservation_conn(models.Model):
         finally:
             cur.close()
         return results
+
+    def book_reservation(pass_id, train_id, date, strt_time, end_time, start_loc, end_loc, price):
+        cur = connection.cursor()
+        cur.callproc('book_res', (pass_id, train_id, date, strt_time, end_time, start_loc, end_loc, price) )
+
+        try:
+            results = cur.fetchall()
+        finally:
+            cur.close()
+        return results
+
+    def curr_reservation(pass_id):
+        cur = connection.cursor()
+        cur.callproc('curr_reservations', (pass_id,))
+        try:
+            results = cur.fetchall()
+        finally:
+            cur.close()
+        return results

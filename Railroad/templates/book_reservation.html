@@ -39,6 +39,7 @@
                         <p><label for="End">End Location:</label>{{ bookForm.end_loc1 }}</p>
                         <p><label for="Train_number">Train Number</label>{{  bookForm.train }}</p>
                         <p><label for="Departure">Departure Time:</label>{{  bookForm.departure }}</p>
+                        <p><label for="DATE">Date:</label>{{  bookForm.res_day }}</p>
                         <p><label for="Arrival">Arrival Time:</label>{{  bookForm.arrival }}</p>
                         <p><label for="Price">Price:</label>{{  bookForm.price }}</p>
                     </div>
@@ -152,6 +153,8 @@
             $('#id_price').val(data.Price);
             $('#id_start_loc1').val( $("#id_start_loc option:selected").text() );
             $('#id_end_loc1').val( $("#id_end_loc option:selected").text() );
+            $('#id_res_day').val( $('#id_reserve_day').val() );
+            
         },
  
         data: reservations ,
