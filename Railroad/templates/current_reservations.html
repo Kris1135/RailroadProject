@@ -3,8 +3,69 @@
 {% block content %}
 
 {% if user.is_authenticated %}
+{% comment %} Modal for editing {% endcomment %}
+<!-- Modal -->
+<div id="editModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+  
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title" style="text-align:center">Book reservation</h4>
+            </div>
+            <div class="modal-body">
+                <p>Choose the reservation you want to switch to</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div>
+                        <p><label for="Start">Start Location:</label>{{ bookForm.start_loc1 }}</p>
+                        <p><label for="End">End Location:</label>{{ bookForm.end_loc1 }}</p>
+                        <p><label for="Train_number">Train Number</label>{{  bookForm.train }}</p>
+                        <p><label for="Departure">Departure Time:</label>{{  bookForm.departure }}</p>
+                        <p><label for="DATE">Date:</label>{{  bookForm.res_day }}</p>
+                        <p><label for="Arrival">Arrival Time:</label>{{  bookForm.arrival }}</p>
+                        <p><label for="Price">Price:</label>{{  bookForm.price }}</p>
+                    </div>
+                    <div class="buttons-form" style="display: block; text-align:center">
+                        <button type="submit" class="btn btn-primary" name="bookForm_submit">Search</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+  
+    </div>
+</div>
+
+<div id="deleteModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+  
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title" style="text-align:center">Delete reservation</h4>
+            </div>
+            <div class="modal-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="buttons-form" style="display: block; text-align:center">
+                        <p>Are you sure you want to delete this reservation?</p>
+                        <p><label for="res_id">Reservation number: </label>{{ deleteForm.reserve_id }}</p>
+                        <button type="submit" class="btn btn-primary" name="deleteConfirm">Delete</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+  
+    </div>
+</div>
+
+
 <h3>These are your currently booked reservations, as well as your reservation history.</h3>
-<p>To edit or delete a reservation click on the row of the reservation.</p>
+<p>To edit a reservation click the blue pencil, to delete a reservation click the red trash can.</p>
 <div id="jsGrid"></div>
 
 {% else %}
@@ -15,6 +76,10 @@
 <script type="text/javascript">
 
     //Format context to pass to grid....
+    var res_id_arr = "{{context.reserve_id}}"; res_id_arr = res_id_arr.substr(1).slice(0,-1);
+    var res_idstr = res_id_arr.split(",");
+    var res_id = [] 
+
     var res_date_arr = "{{context.reserve_date}}"; res_date_arr = res_date_arr.substr(1).slice(0,-1);
     var res_datestr = res_date_arr.split(",");
     var res_date = []   
@@ -58,6 +123,8 @@
     var reservations = [];
 
     for(var i in trains_str) {
+        res_id.push(parseInt(res_idstr[i]));
+
         res_datestr[i] = res_datestr[i].replace("&#39;",""); res_datestr[i] = res_datestr[i].replace("&#39;", ""); 
         res_date.push(res_datestr[i]);
 
@@ -86,13 +153,12 @@
         addr.push(addr_str[i]);
 
         reservations.push(
-            { "Reservation Date": res_date[i], "Trip Date" : trip_date[i], "Start Location" : start_loc[i], "End Location" : end_loc[i], "Price": price[i],
+            { "Reservation Number": res_id[i] ,"Reservation Date": res_date[i], "Trip Date" : trip_date[i], "Start Location" : start_loc[i], "End Location" : end_loc[i], "Price": price[i],
                 "Train" : trains[i], "Start Time": strttime[i], "End Time" : endtime[i], "Card": card[i], "Billing Address" : addr[i]
             }
         )
     }
 
-    console.log(reservations)
 
       $("#jsGrid").jsGrid({
         width: "100%",
@@ -104,28 +170,40 @@
         sorting: true,
         paging: true,
         selectable: true,
-
-        rowClick: function(args) {
-            //Pass values to modal for the purchase form...
-            $('#myModal').modal('show');
-            var data = args.item;
-            
-            
-        },
  
         data: reservations ,
  
         fields: [
+            { name: "Reservation Number", type: "number", validate: "required" },
             { name: "Reservation Date", type: "text", validate: "required" },
             { name: "Trip Date", type: "text", validate: "required" },
             { name: "Start Location", type: "text", validate: "required" },
             { name: "End Location", type: "text", validate: "required" },
-            { name: "Price", type: "number", validate: "required" },
-            { name: "Train", type: "number", validate: "required" },
-            { name: "Start Time", type: "text", validate: "required" },
-            { name: "End Time", type: "text", validate: "required" },
-            { name: "Card", type: "text", validate: "required" },
+            { name: "Price", type: "number", validate: "required", width: "50px"  },
+            { name: "Train", type: "number", validate: "required", width: "50px"  },
+            { name: "Start Time", type: "text", validate: "required", width: "50px"  },
+            { name: "End Time", type: "text", validate: "required", width: "50px" },
+            { name: "Card", type: "text", validate: "required", width: "75px"  },
             { name: "Billing Address", type: "text", validate: "required" },
+            {
+                itemTemplate: function(value, item) {
+                    var $result = jsGrid.fields.control.prototype.itemTemplate.apply(this, arguments);
+
+                    var $customEditButton = $("<button>").attr({class: "customGridEditbutton jsgrid-button jsgrid-edit-button"})
+                      .click(function(e) {
+                          $('#editModal').modal('show')
+                      });
+
+                   var $customDeleteButton = $("<button>").attr({class: "customGridDeletebutton jsgrid-button jsgrid-delete-button"})
+                    .click(function(e) {
+                        $('#id_reserve_id').val( item["Reservation Number"] )
+                        $('#deleteModal').modal('show')
+                    });
+
+                    return $("<div>").append($customEditButton).append($customDeleteButton);
+                    //return $result.add($customButton);
+                },
+            }
         ]
     });
 

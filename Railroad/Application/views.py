@@ -5,7 +5,7 @@ from django.template import RequestContext
 from django.db import connection
 import datetime
 
-from .forms import PassengersForm, SearchForm, BookForm
+from .forms import PassengersForm, SearchForm, BookForm, DeleteForm
 from .models import Reservation_conn
 # Create your views here.
 # def index(request):
@@ -105,6 +105,7 @@ def current(request):
     pass_id = request.user.id 
     exec_sp = Reservation_conn.curr_reservation(pass_id)
     
+    res_id = []
     res_date = []
     trip_date = []
     start_loc = []
@@ -117,18 +118,20 @@ def current(request):
     addr = []
     #Clean data for table...
     for x in exec_sp:
-        res_date.append( x[0].strftime('%H:%M:%S %m/%d/%Y') )
-        trip_date.append( x[1].strftime('%m/%d/%Y') )
-        start_loc.append( x[2] )
-        end_loc.append( x[3] )
-        price.append( float(x[4]) )
-        train.append(x[5])
-        strt_time.append( x[6].strftime('%H:%M:%S') )
-        end_time.append( x[7].strftime('%H:%M:%S') )
-        card.append( x[8] )
-        addr.append( x[9] )
+        res_id.append( x[0] )
+        res_date.append( x[1].strftime('%H:%M:%S %m/%d/%Y') )
+        trip_date.append( x[2].strftime('%m/%d/%Y') )
+        start_loc.append( x[3] )
+        end_loc.append( x[4] )
+        price.append( float(x[5]) )
+        train.append(x[6])
+        strt_time.append( x[7].strftime('%H:%M:%S') )
+        end_time.append( x[8].strftime('%H:%M:%S') )
+        card.append( x[9] )
+        addr.append( x[10] )
 
     context = {
+        'reserve_id' : res_id,
         'reserve_date' :res_date,
         'trip_date':trip_date,
         'start_loc':start_loc,
@@ -141,6 +144,16 @@ def current(request):
         'addr': addr,
     }
 
-    return render(request, 'current_reservations.html', {'context': context})
+    # Delete reservation process...
+    if request.method == 'POST' and 'deleteConfirm' in request.POST:
+        deleteForm = DeleteForm(request.POST)
+        if deleteForm.is_valid():
+            res_id = deleteForm.cleaned_data['reserve_id']
+            del_sp = Reservation_conn.del_reservation(pass_id, res_id)
+        return redirect('current')
+    else:
+        deleteForm = DeleteForm()
+
+    return render(request, 'current_reservations.html', {'context': context, 'deleteForm': deleteForm})
 
         

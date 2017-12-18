@@ -172,3 +172,13 @@ class Reservation_conn(models.Model):
         finally:
             cur.close()
         return results
+
+    def del_reservation(pass_id, reserve_id):
+        cur = connection.cursor()
+        cur.callproc('delete_res', (pass_id,reserve_id,))
+        try:
+            results = cur.fetchall()
+        finally:
+            cur.close()
+        return results
+

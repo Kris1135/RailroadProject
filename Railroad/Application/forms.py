@@ -39,3 +39,10 @@ class BookForm(forms.ModelForm):
     class Meta:
         model = Reservation_conn
         fields = ('train', 'departure', 'arrival', 'price', 'start_loc1', 'end_loc1')
+
+class DeleteForm(forms.ModelForm):
+    reserve_id = forms.IntegerField(required=True)
+
+    class Meta:
+        model = Reservation_conn
+        fields = ('reserve_id',)
