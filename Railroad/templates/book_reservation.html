@@ -82,29 +82,18 @@
 
 <div id="jsGrid"></div>
 
-{% if form.errors %}
-{% for field in form %}
-    {% for error in field.errors %}
-        <div class="alert alert-danger">
-            <strong>{{ error|escape }}</strong>
-        </div>
-    {% endfor %}
-{% endfor %}
-{% for error in form.non_field_errors %}
-    <div class="alert alert-danger">
-        <strong>{{ error|escape }}</strong>
-    </div>
-{% endfor %}
-{% endif %}
 
-{% else %}
-<p>You must be logged in to view this page.</p>
 {% endif %}
 
 <script type="text/javascript">
+    
+
+
     $( function() {
-        $( "#id_reserve_day" ).datepicker();
-      } );
+        $( "#id_reserve_day" ).datepicker({
+           minDate: 0
+        });
+      });
 
     //Format context to pass to grid....
     var train_arr = "{{context.train_id}}"; train_arr = train_arr.substr(1).slice(0,-1);
@@ -159,17 +148,33 @@
         selectable: true,
 
         rowClick: function(args) {
-            //Pass values to modal for the purchase form...
-            $('#myModal').modal('show');
             var data = args.item;
-            $('#id_train').val(data.Train);
-            $('#id_departure').val(data.Departure);
-            $('#id_arrival').val(data.Arrival);
-            $('#id_price').val(data.Price);
-            $('#id_start_loc1').val( $("#id_start_loc option:selected").text() );
-            $('#id_end_loc1').val( $("#id_end_loc option:selected").text() );
-            $('#id_res_day').val( $('#id_reserve_day').val() );
-            
+            console.log((data["Seats Free"] == 0));
+
+            if (data["Seats Free"] == 0) {
+                alert("Not enough seats!")
+            }
+            else {
+                //Pass values to modal for the purchase form...
+                $('#myModal').modal('show');
+                
+                $('#id_train').val(data.Train);
+                $('#id_departure').val(data.Departure);
+                $('#id_arrival').val(data.Arrival);
+                $('#id_price').val(data.Price);
+                $('#id_start_loc1').val( $("#id_start_loc option:selected").text() );
+                $('#id_end_loc1').val( $("#id_end_loc option:selected").text() );
+                $('#id_res_day').val( $('#id_reserve_day').val() );
+                
+
+                document.getElementById("id_start_loc1").readOnly = true
+                document.getElementById("id_end_loc1").readOnly = true
+                document.getElementById("id_train").readOnly = true
+                document.getElementById("id_departure").readOnly = true
+                document.getElementById("id_arrival").readOnly = true
+                document.getElementById("id_res_day").readOnly = true
+                document.getElementById("id_price").readOnly = true
+            }
         },
  
         data: reservations ,

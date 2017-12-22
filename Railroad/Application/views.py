@@ -39,22 +39,17 @@ def about(request):
 def search(request):
     if request.method == 'POST' and 'bookForm_submit' in request.POST:
         bookForm = BookForm(request.POST)
-        print('\n')
-        print(bookForm.is_valid())
-        print(request.POST.get("start_loc1", ""))
-        print(type(request.POST.get("start_loc1", "")))
         #Process data...
-        form_data = bookForm.cleaned_data
-        price = form_data['price'] 
-        strt_time = form_data['departure']
-        end_time = form_data['arrival']
-        train_id = form_data['train']
-        start_loc = form_data['start_loc1']
-        end_loc = form_data['end_loc1']   
-        date = form_data['res_day']
+        price = request.POST.get("price", "") 
+        strt_time = request.POST.get("departure", "") 
+        end_time = request.POST.get("arrival", "")  
+        train_id = request.POST.get("train", "") 
+        start_loc = request.POST.get("start_loc1", "") 
+        end_loc = request.POST.get("end_loc1", "")    
+        dateconv = request.POST.get("res_day", "") 
+        date = datetime.datetime.strptime(dateconv, '%m/%d/%Y')
         pass_id = request.user.id
         exec_sp = Reservation_conn.book_reservation(pass_id, train_id, date, strt_time, end_time, start_loc, end_loc, price)
-        print("HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEERE")
         return redirect(current)
          
     else:
@@ -110,7 +105,6 @@ def search(request):
 def current(request):
     pass_id = request.user.id 
     exec_sp1 = Reservation_conn.curr_reservation(pass_id)
-    
     res_id = []
     res_date = []
     trip_date = []
@@ -188,7 +182,6 @@ def current(request):
             seats.append(x[6])
             prices.append( float(x[7]) )
 
-        print(train_ids)
         context1 = {
             'train_id' : train_ids,
             'departure' : departs,
@@ -210,8 +203,10 @@ def current(request):
     return render(request, 'current_reservations.html', {'context': context, 'deleteForm': deleteForm, 'form': form, })
 
 def edit(request):
+    
     if request.method == 'POST':
         #Process data...
+        print("HERE")
         res = request.POST.get("reservation_id", "")
         train = request.POST.get("train", "")
         dayconv = request.POST.get("reservation_day", "")
@@ -222,8 +217,6 @@ def edit(request):
         end = request.POST.get("end_location", "")
         getcontext().prec = 2
         price = Decimal(request.POST.get("fare", ""))
-        print(price)
-        print(price)
         subm = Reservation_conn.edit_reservation(res, train, day, strt_time, end_time, strt, end, price)
         return redirect('current')
 
