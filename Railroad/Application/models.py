@@ -182,3 +182,12 @@ class Reservation_conn(models.Model):
             cur.close()
         return results
 
+    def edit_reservation(res_id, train, booking_date, trip_start, trip_end, start_txt, end_txt, price):
+        cur = connection.cursor()
+        cur.callproc('edit_res', (res_id, train, booking_date, trip_start, trip_end, start_txt, end_txt, price,))
+        try:
+            results = cur.fetchall()
+        finally:
+            cur.close()
+        return results
+

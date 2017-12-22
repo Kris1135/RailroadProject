@@ -3,8 +3,10 @@ from django.shortcuts import render, redirect, render_to_response
 from django.views.generic import TemplateView
 from django.template import RequestContext
 from django.db import connection
+from django.http import JsonResponse
 import datetime
 
+from decimal import Decimal, getcontext
 from .forms import PassengersForm, SearchForm, BookForm, DeleteForm
 from .models import Reservation_conn
 # Create your views here.
@@ -37,20 +39,24 @@ def about(request):
 def search(request):
     if request.method == 'POST' and 'bookForm_submit' in request.POST:
         bookForm = BookForm(request.POST)
-        if bookForm.is_valid():
-            #Process data...
-            form_data = bookForm.cleaned_data
-            price = form_data['price'] 
-            strt_time = form_data['departure']
-            end_time = form_data['arrival']
-            train_id = form_data['train']
-            start_loc = form_data['start_loc1']
-            end_loc = form_data['end_loc1']   
-            date = form_data['res_day']
-            pass_id = request.user.id
-            exec_sp = Reservation_conn.book_reservation(pass_id, train_id, date, strt_time, end_time, start_loc, end_loc, price)
-            return redirect(current)
-
+        print('\n')
+        print(bookForm.is_valid())
+        print(request.POST.get("start_loc1", ""))
+        print(type(request.POST.get("start_loc1", "")))
+        #Process data...
+        form_data = bookForm.cleaned_data
+        price = form_data['price'] 
+        strt_time = form_data['departure']
+        end_time = form_data['arrival']
+        train_id = form_data['train']
+        start_loc = form_data['start_loc1']
+        end_loc = form_data['end_loc1']   
+        date = form_data['res_day']
+        pass_id = request.user.id
+        exec_sp = Reservation_conn.book_reservation(pass_id, train_id, date, strt_time, end_time, start_loc, end_loc, price)
+        print("HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEERE")
+        return redirect(current)
+         
     else:
         bookForm = BookForm()
 
@@ -103,7 +109,7 @@ def search(request):
 
 def current(request):
     pass_id = request.user.id 
-    exec_sp = Reservation_conn.curr_reservation(pass_id)
+    exec_sp1 = Reservation_conn.curr_reservation(pass_id)
     
     res_id = []
     res_date = []
@@ -117,7 +123,7 @@ def current(request):
     card = []
     addr = []
     #Clean data for table...
-    for x in exec_sp:
+    for x in exec_sp1:
         res_id.append( x[0] )
         res_date.append( x[1].strftime('%H:%M:%S %m/%d/%Y') )
         trip_date.append( x[2].strftime('%m/%d/%Y') )
@@ -154,6 +160,71 @@ def current(request):
     else:
         deleteForm = DeleteForm()
 
-    return render(request, 'current_reservations.html', {'context': context, 'deleteForm': deleteForm})
+    chcksrch = request.POST.get("action", "")
+    if request.method == 'POST' and ('searchForm_submit' == chcksrch):
+        form = SearchForm(request.POST)
+        #Process data...
+        tod = request.POST.get("time_of_day", "")
+        dayconv = request.POST.get("reserve_day", "")
+        day = datetime.datetime.strptime(dayconv, '%m/%d/%Y')
+        strt = request.POST.get("start_loc", "")
+        end = request.POST.get("end_loc", "")
+        srch = Reservation_conn.search(tod,day,strt,end)
+        train_ids = []
+        departs = []
+        strts = []
+        arrivs = []
+        ends = [] 
+        days = []
+        seats = []
+        prices = []
+        for x in srch:
+            train_ids.append( x[0] )
+            departs.append( x[1].strftime('%H:%M:%S') )
+            strts.append(x[2])
+            arrivs.append( x[3].strftime('%H:%M:%S') )
+            ends.append(x[4])
+            days.append(x[5].strftime('%m/%d/%Y'))
+            seats.append(x[6])
+            prices.append( float(x[7]) )
 
-        
+        print(train_ids)
+        context1 = {
+            'train_id' : train_ids,
+            'departure' : departs,
+            'start' : strts,
+            'arrival' : arrivs,
+            'end' : ends ,
+            'date' : days ,
+            'free_seats' : seats,
+            'price' : prices
+        }
+        # for x in srch:
+        #     print(x)
+        return JsonResponse(context1)
+        #return render(request, 'current_reservations.html', {'context': context, 'deleteForm': deleteForm, 'form': form, 'context1': context1,})    
+
+    else:
+        form = SearchForm()
+
+    return render(request, 'current_reservations.html', {'context': context, 'deleteForm': deleteForm, 'form': form, })
+
+def edit(request):
+    if request.method == 'POST':
+        #Process data...
+        res = request.POST.get("reservation_id", "")
+        train = request.POST.get("train", "")
+        dayconv = request.POST.get("reservation_day", "")
+        day = datetime.datetime.strptime(dayconv, '%m/%d/%Y')
+        strt_time = request.POST.get("departure", "")
+        end_time = request.POST.get("arrival", "")
+        strt = request.POST.get("start_location", "")
+        end = request.POST.get("end_location", "")
+        getcontext().prec = 2
+        price = Decimal(request.POST.get("fare", ""))
+        print(price)
+        print(price)
+        subm = Reservation_conn.edit_reservation(res, train, day, strt_time, end_time, strt, end, price)
+        return redirect('current')
+
+    return redirect('current')
