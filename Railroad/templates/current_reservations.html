@@ -42,7 +42,7 @@
                             
                         <button type="submit" id="searchBtn" name="searchForm_submit">Search</button>
                     </form>
-            
+                    <p style="padding-top:5px">Click search to refresh results and to display the grid, then click on the row of the reservation you want to change to.</p>
                     <div id='jsGrid1'></div>
 
                 </div>
@@ -222,7 +222,6 @@
                             var start_loc = $('#id_start_loc :selected').text();
                             var end_loc = $("#id_end_loc :selected").text();
                             var price = data["Price"];
-                            
 
                             //call form submit fn
                             $( "#editConfirm" ).click(function(){
